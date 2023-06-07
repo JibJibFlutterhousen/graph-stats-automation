@@ -1,0 +1,32 @@
+\begin{tikzpicture}
+	\begin{pgfonlayer}{nodelayer}
+		\node [style=Black Node] (0) at (-0.5, 0) {};
+		\node [style=Black Node] (1) at (0.5, 0) {};
+		\node [style=Black Node] (2) at (0, 1) {};
+		\node [style=Black Node] (3) at (0, 2) {};
+		\node [style=Black Node] (4) at (-1, 2) {};
+		\node [style=Black Node] (5) at (-1, 3) {};
+		\node [style=Black Node] (6) at (0, 3) {};
+		\node [style=Black Node] (7) at (1, 3) {};
+		\node [style=Black Node] (8) at (1, 2) {};
+		\node [style=Black Node] (9) at (2, 2) {};
+		\node [style=Black Node] (10) at (-2, 2) {};
+	\end{pgfonlayer}
+	\begin{pgfonlayer}{edgelayer}
+		\draw [style=Black Edge] (0) to (2);
+		\draw [style=Black Edge] (2) to (1);
+		\draw [style=Black Edge] (1) to (0);
+		\draw [style=Black Edge] (2) to (4);
+		\draw [style=Black Edge] (4) to (3);
+		\draw [style=Black Edge] (3) to (2);
+		\draw [style=Black Edge] (2) to (8);
+		\draw [style=Black Edge] (8) to (3);
+		\draw [style=Black Edge] (3) to (6);
+		\draw [style=Black Edge] (6) to (5);
+		\draw [style=Black Edge] (5) to (4);
+		\draw [style=Black Edge] (10) to (4);
+		\draw [style=Black Edge] (6) to (7);
+		\draw [style=Black Edge] (7) to (8);
+		\draw [style=Black Edge] (8) to (9);
+	\end{pgfonlayer}
+\end{tikzpicture}
