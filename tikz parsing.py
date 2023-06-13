@@ -33,9 +33,19 @@ def load_graph(Path):
         graph.add_edge(source_id, target_id, **edge_attributes)
 
     # Make adjusted layout from loaded data
+    min_x = min((data['x_coordinate'] for node, data in graph.nodes(data=True)), default=1)
     max_x = max((data['x_coordinate'] for node, data in graph.nodes(data=True)), default=1)
+    min_y = min((data['y_coordinate'] for node, data in graph.nodes(data=True)), default=1)
     max_y = max((data['y_coordinate'] for node, data in graph.nodes(data=True)), default=1)
-    layout = {node:(data['x_coordinate']/max_x,data['y_coordinate']/max_y) for node, data in graph.nodes(data=True)}
+
+    if min_x != max_x:
+        x_range = max_x - min_x
+        [data.update({'x_coordinate':(data['x_coordinate']-min_x)/x_range}) for node, data in graph.nodes(data=True)]
+    if min_y != max_y:
+        y_range = max_y - min_y
+        [data.update({'y_coordinate':(data['y_coordinate']-min_y)/y_range}) for node, data in graph.nodes(data=True)]
+
+    layout = {node:(data['x_coordinate'],data['y_coordinate']) for node, data in graph.nodes(data=True)}
     return graph, layout
 
 def main():
@@ -63,8 +73,61 @@ def main():
         print('make_new_table not implemented just yet')
         return
 
+    def insert_meta_node(X_coordinate, Y_coordinate, Node_label, Tikz_code):
+        meta_node_style = "shape=circle,text=black,inner sep=0pt,minimum size=1em,fill opacity=0,text opacity=1"
+        node_id = max(int(x) for x in re.findall(r'\((\d+)\)', Tikz_code))+1
+        insert_line = f"      \draw\n        ({X_coordinate},{Y_coordinate}) node[{meta_node_style}]" + f"({node_id})" + r" {" + f"{Node_label}" + "};\n"
+        lines = Tikz_code.split('\n')
+        tikzpicture = ""
+        for line in lines:
+            if r"\begin{scope}[-]" in line:
+                tikzpicture += insert_line
+            tikzpicture += line
+            if r"    \end{tikzpicture}}" in line:
+                break
+            else:
+                tikzpicture += "\n"
+        return tikzpicture
+
+
     def export_table_file():
         print('export_table_file not implemented just yet')
+        filename = graph_file_label.cget('text')
+        if filename != 'None':
+            graph, layout = load_graph(filename)
+            default_node_styles = {node:"draw=black,fill=black!0,shape=circle,text=black,inner sep=0pt,minimum size=4pt" for node in graph}
+            tikzpicture = r"\resizebox{1in}{1in}{tikz_code}".replace('tikz_code',re.sub(r'\{\d+\}', '{}', nx.to_latex_raw(graph, pos=layout, node_options=default_node_styles)).strip())
+
+            # upper_left = top_left_entry.get()
+            # upper_center = top_center_entry.get()
+            # upper_right = top_right_entry.get()
+            # lower_right = bottom_right_entry.get()
+            # lower_left = bottom_left_entry.get()
+
+            upper_left = 'ul'
+            upper_center = 'uc'
+            upper_right = 'ur'
+            lower_right = 'lr'
+            lower_left = 'll'
+
+            print(f'ul:<{upper_left}>')
+            print(f'uc:<{upper_center}>')
+            print(f'ur:<{upper_right}>')
+            print(f'lr:<{lower_right}>')
+            print(f'll:<{lower_left}>')
+    
+            if len(upper_left) > 0:
+                tikzpicture = insert_meta_node(-0.35,1.35,upper_left,tikzpicture)
+            if len(upper_center) > 0:
+                tikzpicture = insert_meta_node(0.5,1.35,upper_center,tikzpicture)
+            if len(upper_right) > 0:
+                tikzpicture = insert_meta_node(1.35,1.35,upper_right,tikzpicture)
+            if len(lower_right) > 0:
+                tikzpicture = insert_meta_node(1.35,-0.35,lower_right,tikzpicture)
+            if len(lower_left) > 0:
+                tikzpicture = insert_meta_node(-0.35,-0.35,lower_left,tikzpicture)
+
+            print(tikzpicture)
         return
 
     # constants
@@ -99,11 +162,16 @@ def main():
     exit_button = tkinter.Button(main_window, text='Exit', command=exit, bg='silver', height=HEIGHT, width=WIDTH)
 
     # Textboxes
-    top_left_textbox = tkinter.Text(main_window, height=HEIGHT, width=WIDTH)
-    top_center_textbox = tkinter.Text(main_window, height=HEIGHT, width=WIDTH)
-    top_right_textbox = tkinter.Text(main_window, height=HEIGHT, width=WIDTH)
-    bottom_left_textbox = tkinter.Text(main_window, height=HEIGHT, width=WIDTH)
-    bottom_right_textbox = tkinter.Text(main_window, height=HEIGHT, width=WIDTH)
+    top_left_entry = tkinter.StringVar()
+    top_left_textbox = tkinter.Entry(main_window, width=WIDTH, textvariable=top_left_entry)
+    top_center_entry = tkinter.StringVar()
+    top_center_textbox = tkinter.Entry(main_window, width=WIDTH, textvariable=top_center_entry)
+    top_right_entry = tkinter.StringVar()
+    top_right_textbox = tkinter.Entry(main_window, width=WIDTH, textvariable=top_right_entry)
+    bottom_left_entry = tkinter.StringVar()
+    bottom_left_textbox = tkinter.Entry(main_window, width=WIDTH, textvariable=bottom_left_entry)
+    bottom_right_entry = tkinter.StringVar()
+    bottom_right_textbox = tkinter.Entry(main_window, width=WIDTH, textvariable=bottom_right_entry)
 
     # Canvases
     figure,axes = plt.subplots(figsize=(5,5), dpi=250)
